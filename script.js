@@ -10,6 +10,27 @@ function speak(text) {
     window.speechSynthesis.speak(msg);
 }
 
+function calculateExpression(expression) {
+    try {
+        let result = eval(expression.replaceAll('^', '**').replaceAll('x', '*').replaceAll('÷', '/').replaceAll('e', `${EN}`).replaceAll('π', `${PI}`));
+        result = parseFloat(result).toString();
+        speak(`The answer is ${result}`);
+        input.value = result;
+    } catch (error) {
+        speak("Error");
+        input.value = "Error";
+    }
+}
+
+function factorial(n) {
+    if (n === 0 || n === 1)
+        return 1;
+    for (let i = n - 1; i >= 1; i--) {
+        n *= i;
+    }
+    return n;
+}
+
 arr.forEach(button => {
     button.addEventListener('click', (e) => {
         let buttonText = e.target.innerHTML.trim();
@@ -19,36 +40,47 @@ arr.forEach(button => {
         switch (buttonText) {
             case '+':
                 spokenText = 'plus';
+                input.value += ' + ';
                 break;
             case '-':
                 spokenText = 'minus';
+                input.value += ' - ';
                 break;
             case 'x':
                 spokenText = 'times';
+                input.value += ' x ';
                 break;
             case '÷':
                 spokenText = 'divided by';
+                input.value += ' ÷ ';
                 break;
             case '^':
                 spokenText = 'to the power of';
+                input.value += ' ^ ';
                 break;
             case '=':
                 spokenText = 'equals';
+                calculateExpression(input.value);
                 break;
             case 'π':
                 spokenText = 'pi';
+                input.value += PI;
                 break;
             case 'e':
                 spokenText = 'euler\'s number';
+                input.value += EN;
                 break;
             case '(':
                 spokenText = 'left parenthesis';
+                input.value += '(';
                 break;
             case ')':
                 spokenText = 'right parenthesis';
+                input.value += ')';
                 break;
             case '.':
                 spokenText = 'dot';
+                input.value += '.';
                 break;
             case 'AC':
                 spokenText = 'all clear';
@@ -98,26 +130,31 @@ arr.forEach(button => {
         }
 
         speak(spokenText);
-
-        if (buttonText === '=') {
-            try {
-                let result = eval(input.value.replaceAll('^', '**').replaceAll('x', '*').replaceAll('÷', '/').replaceAll('e', `${EN}`).replaceAll('π', `${PI}`));
-                result = parseFloat(result).toString();
-                speak(`The answer is ${result}`);
-                input.value = result;
-            } catch (error) {
-                speak("Error");
-                input.value = "Error";
-            }
-        }
     });
 });
 
-function factorial(n) {
-    if (n === 0 || n === 1)
-        return 1;
-    for (let i = n - 1; i >= 1; i--) {
-        n *= i;
+// Keyboard support
+document.addEventListener('keydown', (e) => {
+    let key = e.key;
+    if ('0123456789+-*/().'.includes(key)) {
+        input.value += key;
+        speak(key);
+    } else if (key === 'Enter') {
+        calculateExpression(input.value);
+    } else if (key === 'Backspace') {
+        input.value = input.value.slice(0, -1);
+        speak('delete');
+    } else if (key === 'Escape') {
+        input.value = '';
+        speak('all clear');
     }
-    return n;
-}
+});
+
+// Audio Guide
+document.getElementById('audioGuideBtn').addEventListener('click', () => {
+    speak(`Welcome to the accessible calculator. To use this calculator, you can click on the buttons or use the following keyboard shortcuts:
+        For numbers and basic operations, use the corresponding keys on your keyboard.
+        For advanced functions, use the following keys:
+        S for sine, C for cosine, T for tangent, L for logarithm, R for square root, E for exponential, F for factorial, and Q for square.
+        Press Enter to calculate the result. Press Backspace to delete the last character, and Escape to clear the input.`);
+});
